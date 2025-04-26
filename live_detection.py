@@ -1,4 +1,4 @@
-from scapy.all import sniff, IP
+from scapy.all import sniff, IP, TCP, UDP
 import pandas as pd
 import pickle
 import ipaddress
@@ -19,17 +19,31 @@ def ip_to_int(ip_address):
 def process_packet(pkt):
     if IP in pkt:
         src_ip = ip_to_int(pkt[IP].src)
-        dst_ip = ip_to_int(pkt[IP].dst)
         proto = pkt[IP].proto
         length = len(pkt)
 
+        # Initialize ports
+        src_port = 0
+        dst_port = 0
+
+        # Extract ports if TCP or UDP
+        if TCP in pkt:
+            src_port = pkt[TCP].sport
+            dst_port = pkt[TCP].dport
+        elif UDP in pkt:
+            src_port = pkt[UDP].sport
+            dst_port = pkt[UDP].dport
+
+        # Prepare features for prediction
         features = pd.DataFrame([{
             'src_ip': src_ip,
-            'dst_ip': dst_ip,
+            'src_port': src_port,
+            'dst_port': dst_port,
             'protocol': proto,
             'length': length
         }])
 
+        # Perform prediction
         prediction = model.predict(features)[0]
         score = model.decision_function(features)[0]
 
@@ -37,15 +51,12 @@ def process_packet(pkt):
         label = 'ATTACK DETECTED' if prediction == -1 else 'NORMAL'
 
         # Print alert
-        if prediction == -1:
-            print(f"{timestamp} | {label} | {pkt[IP].src} → {pkt[IP].dst} | proto={proto}, len={length} | score={score:.4f}")
-        else:
-            print(f"{timestamp} | NORMAL | {pkt[IP].src} → {pkt[IP].dst} | proto={proto}, len={length} | score={score:.4f}")
+        print(f"{timestamp} | {label} | {pkt[IP].src} → {pkt[IP].dst} | proto={proto}, len={length} | score={score:.4f}")
 
         # Optional logging of attacks
         with open("live_attack_log.csv", "a") as f:
-            f.write(f"{timestamp},{pkt[IP].src},{pkt[IP].dst},{proto},{length},{score:.4f},{label}\n")
+            f.write(f"{timestamp},{pkt[IP].src},{pkt[IP].dst},{src_port},{dst_port},{proto},{length},{score:.4f},{label}\n")
 
 # === Sniff Interface ===
-print("🛡️ Starting live attack detection... Press Ctrl+C to stop.")
+print("Starting live attack detection... Press Ctrl+C to stop.")
 sniff(iface="enp5s0", prn=process_packet, store=False)
