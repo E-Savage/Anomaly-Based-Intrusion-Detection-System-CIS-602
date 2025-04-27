@@ -1,5 +1,5 @@
-network_data_2days.csv
-network_anomoly_model_mb_es.pkl
-training_data_with_anomaly_scores.csv
+test_files/network_data_2days.csv
+test_files/network_anomoly_model_mb_es.pkl
+test_files/training_data_with_anomaly_scores.csv
 network_data_2days.pcap
 2day_capture.csv
