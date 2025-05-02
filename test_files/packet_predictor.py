@@ -49,10 +49,10 @@ def generate_report(predicted_data, report_filename='anomaly_detection_report.cs
 
     # Save the report
     report.to_csv(report_filename, index=False)
-    print(f"✅ Detailed anomaly report saved to '{report_filename}'")
+    print(f"Detailed anomaly report saved to '{report_filename}'")
 
     # Print a summary
-    print("\n📊 Anomaly Summary:")
+    print("\nAnomaly Summary:")
     print(predicted_data['anomaly'].value_counts().rename(index={1: 'Normal', -1: 'Anomaly'}))
 
 # --- MAIN EXECUTION ---
