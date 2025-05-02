@@ -4,18 +4,18 @@ import pickle
 import ipaddress
 from datetime import datetime
 
-# === Load your trained model ===
-with open('ids_isolation_forest.pkl', 'rb') as f:
+#  Load trained model 
+with open('ids.pkl', 'rb') as f:
     model = pickle.load(f)
 
-# === IP to integer ===
+# converts IP to integer value
 def ip_to_int(ip_address):
     try:
         return int(ipaddress.ip_address(ip_address))
     except ValueError:
         return 0  # fallback
 
-# === Detection Function ===
+# begins packet processing
 def process_packet(pkt):
     if IP in pkt:
         src_ip = ip_to_int(pkt[IP].src)
@@ -57,6 +57,6 @@ def process_packet(pkt):
         with open("live_attack_log.csv", "a") as f:
             f.write(f"{timestamp},{pkt[IP].src},{pkt[IP].dst},{src_port},{dst_port},{proto},{length},{score:.4f},{label}\n")
 
-# === Sniff Interface ===
+# Opens up interface for sniffing
 print("Starting live attack detection... Press Ctrl+C to stop.")
 sniff(iface="enp5s0", prn=process_packet, store=False)
